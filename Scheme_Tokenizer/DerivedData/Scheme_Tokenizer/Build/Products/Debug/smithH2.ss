@@ -1,0 +1,150 @@
+(define square
+	(lambda (n)
+		(* n n)
+	)
+)
+
+(define reciprocal
+	(lambda (n)
+		(if (= n 0)
+			(error "oops!")
+			(/ 1 n)
+		)
+	)
+)
+
+(define inversesquare
+	(lambda (n)
+		(if (= n 0)
+			(0)
+			(square(reciprocal n))
+		)
+	)
+)
+
+(define electrical_power
+	(lambda (v r)
+		(if (= r 0)
+			(error "uh oh!")
+			(/ (square v) r)
+		)
+	)
+)
+
+(define notcreativeenough
+	(lambda (x y)
+		(* (square x) (reciprocal y))
+	)
+)
+
+(define morecreative
+	(lambda (x y)
+		(/ x (+ (square x) (reciprocal y)))
+	)
+
+)
+
+(define insert-first
+	(lambda (a b)
+		(if (list? a)
+			(if (list? b)
+				(error "2nd argument is not an element!")
+				(cons b a)
+			)
+			(error "1st argument is not a list!")
+		)
+	)
+)
+
+(define remove-first
+	(lambda (a)
+		(if (list? a)
+			(if (null? a)
+				(error "Empty list is not allowed!")
+				(cdr a)
+			)
+			(error "1st argument is not a list!")
+		)
+	)
+)
+
+(define list-copy
+	(lambda (a)
+		(if (list? a)
+			(if (null? a)
+				'()
+				(cons (car a)
+					(list-copy (cdr a))
+				)
+			)
+			(error "1st argument is not a list!")
+		)
+	)
+)			
+
+(define even-copy
+	(lambda (a)
+		(if (list? a)
+			(if (null? a)
+				'()
+				(if (null? (cdr a))
+					'()
+					(cons (cadr a) (even-copy (cddr a)))
+				)
+			)
+		)
+	)
+)
+				
+(define odd-copy
+        (lambda (a)
+                (if (list? a)
+                        (if (null? a)
+                                '()
+                                (if (null? (cdr a))
+                                        a
+                                        (cons (car a) (odd-copy (cddr a)))
+                                )
+                        )
+                )
+        )
+)
+
+(define insert-last
+	(lambda (a b)
+		(if (list? a)
+			(if (list? b)
+				(error "2nd argument is not a value!")
+				(if (null? a)
+					(cons b '())
+					(cons (car a) (insert-last(cdr a) b))
+				) 
+			)
+			(error "1st argument is not a list!")
+		)
+	)
+)
+
+(define remove-last
+        (lambda (a)
+                (if (list? a)
+                	(if (null? (cdr a)) 
+                        	'()
+                                (cons (car a) (remove-last(cdr a)))
+                        )
+                        (error "1st argument is not a list!")
+                )
+        )
+)
+
+(define list-reverse
+	(lambda (a)
+		(if (list? a)
+			(if (null? a)
+				'()
+				(insert-last (list-reverse (cdr a)) (car a))
+			)
+			(error "1st argument is not a list!")
+		)
+	)
+)

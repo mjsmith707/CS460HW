@@ -1,0 +1,14 @@
+1. symbol 1 1. 1.2 .2 car cdr cons if else and or not define number? symbol? lambda list? zero? null? char? string? error + - / * = > < >= <= ( ) '
+2. ; ignore this line please (cdr '(abcd) '(efgh))
+3. "string literal test"
+4. "unclosed string literal test (cdr '(abc) b)
+Error unterminated string literal at line 4
+5. and another"
+Error at 5,12: Illegal Character: "
+6. symbol 1 1.2 define number? anobvious$error*thing (cdr '(car (cons '(abc) '(def)))
+Error at 6,38: Illegal Character: $
+7. anobvious$error*thing2
+Error at 7,10: Illegal Character: $
+8. (car '(c$dr) '(abc))
+Error at 8,9: Illegal Character: $
+5 errors found.

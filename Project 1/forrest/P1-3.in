@@ -1,0 +1,24 @@
+void main ()
+{	
+        int abc;	
+        float	 xyz	;
+        abc = 	21	;
+        xyz = 	3.45;
+        abc = abc + 75 - 32/15 % 4;
+        xyz = 	xyz + 75.0 - .32/15.;
+        if (	abc	 < 	xyz	)
+                abc	 = 	abc + xyz;
+        int total = 0;
+        while (abc > 100)
+        {
+		  total += abc;
+		  abc--;	
+        }
+        float	 abs;
+        if (xyz	 < 0)
+        {
+		  abs = -1 * xyz;
+        }
+	  else	
+                abs	 = 	xyz	;	
+} 
