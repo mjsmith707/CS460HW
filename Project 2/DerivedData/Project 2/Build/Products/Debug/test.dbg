@@ -1,0 +1,97 @@
+2. (car '(abc def ghi))
+LPAREN_T  (
+CAR_T     car
+QUOTE_T   '
+LPAREN_T  (
+SYMBOL_T  abc
+SYMBOL_T  def
+SYMBOL_T  ghi
+RPAREN_T  )
+RPAREN_T  )
+0 errors found.
+3. (cons 'abd '(1 2 3))
+LPAREN_T  (
+CONS_T    cons
+QUOTE_T   '
+SYMBOL_T  abd
+QUOTE_T   '
+LPAREN_T  (
+NUMLIT_T  1
+NUMLIT_T  2
+NUMLIT_T  3
+RPAREN_T  )
+RPAREN_T  )
+0 errors found.
+4. (cons 'a 'b)
+LPAREN_T  (
+CONS_T    cons
+QUOTE_T   '
+SYMBOL_T  a
+QUOTE_T   '
+SYMBOL_T  b
+RPAREN_T  )
+0 errors found.
+5. (cons (car '(a b c d)) (cdr '(a b c d)))
+LPAREN_T  (
+CONS_T    cons
+LPAREN_T  (
+CAR_T     car
+QUOTE_T   '
+LPAREN_T  (
+SYMBOL_T  a
+SYMBOL_T  b
+SYMBOL_T  c
+SYMBOL_T  d
+RPAREN_T  )
+RPAREN_T  )
+LPAREN_T  (
+CDR_T     cdr
+QUOTE_T   '
+LPAREN_T  (
+SYMBOL_T  a
+SYMBOL_T  b
+SYMBOL_T  c
+SYMBOL_T  d
+RPAREN_T  )
+RPAREN_T  )
+RPAREN_T  )
+0 errors found.
+6. (cons (car '(a b c d)) (car '(a b c d)))
+LPAREN_T  (
+CONS_T    cons
+LPAREN_T  (
+CAR_T     car
+QUOTE_T   '
+LPAREN_T  (
+SYMBOL_T  a
+SYMBOL_T  b
+SYMBOL_T  c
+SYMBOL_T  d
+RPAREN_T  )
+RPAREN_T  )
+LPAREN_T  (
+CAR_T     car
+QUOTE_T   '
+LPAREN_T  (
+SYMBOL_T  a
+SYMBOL_T  b
+SYMBOL_T  c
+SYMBOL_T  d
+RPAREN_T  )
+RPAREN_T  )
+RPAREN_T  )
+0 errors found.
+7. (define (a '(1 2 3)))
+LPAREN_T  (
+DEFINE_T  define
+LPAREN_T  (
+SYMBOL_T  a
+QUOTE_T   '
+LPAREN_T  (
+NUMLIT_T  1
+NUMLIT_T  2
+NUMLIT_T  3
+RPAREN_T  )
+RPAREN_T  )
+RPAREN_T  )
+0 errors found.

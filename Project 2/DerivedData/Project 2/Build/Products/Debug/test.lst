@@ -1,0 +1,12 @@
+2. (car '(abc def ghi))
+0 errors found.
+3. (cons 'abd '(1 2 3))
+0 errors found.
+4. (cons 'a 'b)
+0 errors found.
+5. (cons (car '(a b c d)) (cdr '(a b c d)))
+0 errors found.
+6. (cons (car '(a b c d)) (car '(a b c d)))
+0 errors found.
+7. (define (a '(1 2 3)))
+0 errors found.

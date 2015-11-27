@@ -7,8 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		45F5F4731C057454002D26F7 /* Grammar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45F5F4721C057454002D26F7 /* Grammar.cpp */; };
 		45F7A8531BFD120500EEF6B7 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45F7A8521BFD120500EEF6B7 /* main.cpp */; };
-		45F7A85B1BFD123E00EEF6B7 /* FirstFollowsGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45F7A8591BFD123E00EEF6B7 /* FirstFollowsGenerator.cpp */; };
+		45F7A85B1BFD123E00EEF6B7 /* FirstFollowGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45F7A8591BFD123E00EEF6B7 /* FirstFollowGenerator.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,10 +25,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		45F5F4561C057220002D26F7 /* Grammar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Grammar.h; sourceTree = "<group>"; };
+		45F5F4721C057454002D26F7 /* Grammar.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Grammar.cpp; sourceTree = "<group>"; };
 		45F7A84F1BFD120500EEF6B7 /* FirstFollowsGenerator */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FirstFollowsGenerator; sourceTree = BUILT_PRODUCTS_DIR; };
 		45F7A8521BFD120500EEF6B7 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		45F7A8591BFD123E00EEF6B7 /* FirstFollowsGenerator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FirstFollowsGenerator.cpp; sourceTree = "<group>"; };
-		45F7A85A1BFD123E00EEF6B7 /* FirstFollowsGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FirstFollowsGenerator.h; sourceTree = "<group>"; };
+		45F7A8591BFD123E00EEF6B7 /* FirstFollowGenerator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FirstFollowGenerator.cpp; sourceTree = "<group>"; };
+		45F7A85A1BFD123E00EEF6B7 /* FirstFollowGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FirstFollowGenerator.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,8 +64,10 @@
 			isa = PBXGroup;
 			children = (
 				45F7A8521BFD120500EEF6B7 /* main.cpp */,
-				45F7A8591BFD123E00EEF6B7 /* FirstFollowsGenerator.cpp */,
-				45F7A85A1BFD123E00EEF6B7 /* FirstFollowsGenerator.h */,
+				45F7A8591BFD123E00EEF6B7 /* FirstFollowGenerator.cpp */,
+				45F7A85A1BFD123E00EEF6B7 /* FirstFollowGenerator.h */,
+				45F5F4561C057220002D26F7 /* Grammar.h */,
+				45F5F4721C057454002D26F7 /* Grammar.cpp */,
 			);
 			path = FirstFollowsGenerator;
 			sourceTree = "<group>";
@@ -123,8 +128,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				45F5F4731C057454002D26F7 /* Grammar.cpp in Sources */,
 				45F7A8531BFD120500EEF6B7 /* main.cpp in Sources */,
-				45F7A85B1BFD123E00EEF6B7 /* FirstFollowsGenerator.cpp in Sources */,
+				45F7A85B1BFD123E00EEF6B7 /* FirstFollowGenerator.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -241,6 +247,7 @@
 				45F7A8581BFD120500EEF6B7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
