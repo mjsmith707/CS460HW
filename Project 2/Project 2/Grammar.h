@@ -19,48 +19,11 @@
 class Grammar {
     public:
         // Public structure definitions
-        enum class TerminalEnums {
-            PLUS_T = 0,
-            MINUS_T = 1,
-            DIV_T = 2,
-            MULT_T = 3,
-            LPAREN_T = 4,
-            RPAREN_T = 5,
-            QUOTE_T = 6,
-            COMMENT_T =7,
-            GTE_T = 8,
-            GT_T = 9,
-            LTE_T = 10,
-            LT_T = 11,
-            CAR_T = 12,
-            CDR_T = 13,
-            CONS_T = 14,
-            CHARP_T = 15,
-            IF_T = 16,
-            ELSE_T = 17,
-            AND_T = 18,
-            OR_T = 19,
-            NOT_T = 20,
-            NULLP_T = 21,
-            NUMBERP_T = 22,
-            SYMBOLP_T = 23,
-            STRINGP_T = 24,
-            LISTP_T = 25,
-            ZEROP_T = 26,
-            DEFINE_T = 27,
-            EQUALTO_T = 28,
-            SYMBOL_T = 29,
-            NUMLIT_T = 30,
-            LAMBDA_T = 31,
-            STRING_T = 32,
-            ERROR_T = 33,
-            EOF_T = 34,
-            LAMBDA=35,
-            LEXICAL_ERROR = 36,
-            // 37 = Unclosed String Literal?
-            LISTOP_T = 37,
-            NONTERMINAL_T
-        };
+        enum class TerminalEnums {NONE = -1,SYMBOL_T, NUMLIT_T, CAR_T, CDR_T, CONS_T, IF_T,
+		LISTOP_T, AND_T, OR_T, NOT_T, DEFINE_T, NUMBERP_T, SYMBOLP_T,
+		LISTP_T, ZEROP_T, NULLP_T, CHARP_T, STRINGP_T, PLUS_T,
+		MINUS_T, DIV_T, MULT_T, EQUALTO_T, GT_T, LT_T, GTE_T,
+		LTE_T, LPAREN_T, RPAREN_T, QUOTE_T, ERROR_T, EOF_T, NONTERMINAL_T, LAMBDA};
         
         // Symbol struct
         typedef struct Symbol {
@@ -121,47 +84,12 @@ class Grammar {
 };
 
 // List of Terminal Strings, Aligned with TerminalEnums
-const std::vector<std::string> TerminalStrings = {
-    "PLUS_T",
-    "MINUS_T",
-    "DIV_T",
-    "MULT_T",
-    "LPAREN_T",
-    "RPAREN_T",
-    "QUOTE_T",
-    "COMMENT_T",
-    "GTE_T",
-    "GT_T",
-    "LTE_T",
-    "LT_T",
-    "CAR_T",
-    "CDR_T",
-    "CONS_T",
-    "CHARP_T",
-    "IF_T",
-    "ELSE_T",
-    "AND_T",
-    "OR_T",
-    "NOT_T",
-    "NULLP_T",
-    "NUMBERP_T",
-    "SYMBOLP_T",
-    "STRINGP_T",
-    "LISTP_T",
-    "ZEROP_T",
-    "DEFINE_T",
-    "EQUALTO_T",
-    "SYMBOL_T",
-    "NUMLIT_T",
-    "LAMBDA_T",
-    "STRING_T",
-    "ERROR_T",
-    "EOF_T",
-    "LAMBDA",
-    "LERROR_T",
-    "LISTOP_T",
-    "NONTERMINAL_T"
-};
+const std::vector<std::string> TerminalStrings = {	"SYMBOL_T", "NUMLIT_T", "CAR_T", "CDR_T", "CONS_T", "IF_T",
+				"LISTOP_T", "AND_T", "OR_T", "NOT_T", "DEFINE_T", "NUMBERP_T",
+				"SYMBOLP_T", "LISTP_T", "ZEROP_T", "NULLP_T", "CHARP_T",
+				"STRINGP_T", "PLUS_T", "MINUS_T", "DIV_T", "MULT_T", "EQUALTO_T",
+				"GT_T", "LT_T", "GTE_T", "LTE_T", "LPAREN_T", "RPAREN_T",
+				"QUOTE_T", "ERROR_T", "EOF_T", "NONTERMINAL_T", "LAMBDA"};
 
 // List of scheme nonterminal symbols
 const std::vector<std::string> NonterminalStrings = {"<program>", "<stmt>", "<stmt_list>", "<literal>", "<quoted_lit>", "<action>", "<param_list>", "<else_part>"};

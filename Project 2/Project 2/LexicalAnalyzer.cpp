@@ -1,424 +1,151 @@
-//
-//  LexicalAnalyzer.cpp
-//  Scheme_Tokenizer
-//
-//  Created by Matt on 10/10/15.
-//  Copyright (c) 2015 Matt. All rights reserved.
-//
-
+#include <iomanip>
+#include <cstdlib>
 #include "LexicalAnalyzer.h"
 
-// Default Constructor
-LexicalAnalyzer::LexicalAnalyzer(std::fstream& inputFile, std::fstream& lststream, std::fstream& dbgstream) : inputStream(inputFile), lstStream(lststream), dbgStream(dbgstream), state(0), pos(0), curr(0), lineNum(1), errorCount(0) {
+using namespace std;
+
+static string token_names[] = {	"SYMBOL_T", "NUMLIT_T", "CAR_T", "CDR_T", "CONS_T", "IF_T",
+				"LISTOP_T", "AND_T", "OR_T", "NOT_T", "DEFINE_T", "NUMBERP_T",
+				"SYMBOLP_T", "LISTP_T", "ZEROP_T", "NULLP_T", "CHARP_T",
+				"STRINGP_T", "PLUS_T", "MINUS_T", "DIV_T", "MULT_T", "EQUALTO_T",
+				"GT_T", "LT_T", "GTE_T", "LTE_T", "LPAREN_T", "RPAREN_T",
+				"QUOTE_T", "ERROR_T", "EOF_T"}; 
+static int table [][19] = 
+//	  a   c   d   r   b   0   .   (   )   +   -   *   /   '   =   <   >   ?  other
+       {{32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32},  // 0 not used
+	{ 8,  9,  8,  8,  8,  2,  3, 24, 24,  5,  6, 24, 24, 24, 24,  7,  7, 32, 24},  // 1 starting
+	{22, 22, 22, 22, 22,  2,  4, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22},  // 2 number
+	{31, 31, 31, 31, 31,  4, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31},  // 3 period
+	{22, 22, 22, 22, 22,  4, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22},  // 4 number after decimal
+	{23, 23, 23, 23, 23,  2,  3, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23},  // 5 plus
+	{23, 23, 23, 23, 23,  2,  3, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23},  // 6 minus
+	{23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 24, 23, 23, 23, 23},  // 7 less than
+	{ 8,  8,  8,  8,  8,  8, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 24, 21},  // 8 letter other than c
+	{10,  8, 11,  8,  8,  8, 21, 21, 21, 24, 21, 10, 21, 21, 21, 21, 21, 21, 21},  // 9 letter c
+	{ 8,  8, 11, 20,  8,  8, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21},  // 10 letter a after c
+	{ 8,  8, 11, 20,  8,  8, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21}}; // 11 letter d after c, ca, or cd...
+
+LexicalAnalyzer::LexicalAnalyzer (std::string filename, std::fstream& input, std::fstream& listing, std::fstream& debug) : input(input), listing(listing), debug(debug)//(char * filename)
+{
+	listing << "Input file: " << filename << endl;
+	debug << "Input file: " << filename << endl;
+	line = " ";
+	linenum = 0;
+	pos = 0;
+	lexeme = "";
+	errors = 0;
 }
 
-// Public token accessor
-LexicalAnalyzer::Token LexicalAnalyzer::getToken() {
-    if (tokenQueue.empty()) {
-        runScanner();
-    }
-    auto& token = tokenQueue.front();
-    tokenQueue.pop();
-    return token;
+LexicalAnalyzer::~LexicalAnalyzer ()
+{
+	listing << errors << " errors found in input file\n";
+	debug << errors << " errors found in input file\n";
 }
 
-// Run the tokenizer
-void LexicalAnalyzer::runScanner() {
-    // Who knew streams didn't have builtin equality tests
-    bool sameStream = &lstStream == &dbgStream;
-    
-    // Tokenize line by line
-    std::string line;
-    if (!std::getline(inputStream, line)) {
-        Token tok;
-        tok.lexeme = Grammar::TerminalEnums::EOF_T;
-        tok.lineNum = lineNum;
-        tok.value = "EOF";
-        tokenQueue.push(tok);
-        return;
-    }
-    
-    // Tokenize the line and store in res
-    auto res = getTokens(line);
-    
-    // Save to a list of tokens for further use
-    for (auto& i : res) {
-        tokenQueue.push(i);
-    }
-    
-    // Print out line number + line of code
-    if (sameStream) {
-        lstStream << lineNum << ". " << line << std::endl;
-    }
-    else {
-        lstStream << lineNum << ". " << line << std::endl;
-        dbgStream << lineNum << ". " << line << std::endl;
-    }
-    
-    // Print out Lexeme list
-    for (auto& i : res) {
-        dbgStream << std::left << std::setw(10) << i.lexeme << i.value << std::endl;
-    }
-    
-    // Print out error list
-    for (auto& i : getErrors()) {
-        if (sameStream) {
-            lstStream << i << std::endl;
-        }
-        else {
-            lstStream << i << std::endl;
-            dbgStream << i << std::endl;
-        }
-    }
-    
-    // Reset errors list
-    resetErrors();
-    
-    // Print out error count
-    if (sameStream) {
-        lstStream << getErrorCount() << " errors found." << std::endl;
-    }
-    else {
-        lstStream << getErrorCount() << " errors found." << std::endl;
-        dbgStream << getErrorCount() << " errors found." << std::endl;
-    }
+Grammar::TerminalEnums LexicalAnalyzer::get_token ()
+{
+	static string valid = "acdrb0.()+-*/'=<>?";
+	while (isspace(line[pos]))
+		if (++pos >= line.length())
+		{
+			getline (input, line);
+			if (input.fail())
+				return Grammar::TerminalEnums::EOF_T;
+			linenum++;
+			listing << setw(4) << right << linenum << ": " << line << endl;	
+			debug << setw(4) << right << linenum << ": " << line << endl;	
+			line += ' ';
+			pos = 0;
+		}
+	lexeme = "";
+	int state = 1;
+	Grammar::TerminalEnums token = Grammar::TerminalEnums::NONE;
+	while (token == Grammar::TerminalEnums::NONE)
+	{
+		char c = line[pos++];
+		lexeme += c;
+		if (isalpha(c) && (c != 'a' && c != 'c' && c != 'd' && c != 'r')) 
+			c = 'b';
+		else if (isdigit(c))
+			c = '0';
+		int col = 0;
+		while (col < valid.length() && valid[col] != c)
+			col++;
+		state = table[state][col];
+		switch (state)
+		{
+		    case 20: // car, cdr, cadr, cddr, and other list operators
+			if (lexeme == "car") token = Grammar::TerminalEnums::CAR_T;
+			else if (lexeme == "cdr") token = Grammar::TerminalEnums::CDR_T;
+			else token = Grammar::TerminalEnums::LISTOP_T;
+			break;
+		    case 21: // symbol or keyword
+			pos--;
+			lexeme = lexeme.erase(lexeme.length()-1,1);
+			if (lexeme == "cons") token = Grammar::TerminalEnums::CONS_T;
+			else if (lexeme == "if") token = Grammar::TerminalEnums::IF_T;
+			else if (lexeme == "and") token = Grammar::TerminalEnums::AND_T;
+			else if (lexeme == "or") token = Grammar::TerminalEnums::OR_T;
+			else if (lexeme == "not") token = Grammar::TerminalEnums::NOT_T;
+			else if (lexeme == "define") token = Grammar::TerminalEnums::DEFINE_T;
+			else token = Grammar::TerminalEnums::SYMBOL_T;
+			break;
+		    case 22: // numeric literal
+			pos--;
+			lexeme = lexeme.erase(lexeme.length()-1,1);
+			token = Grammar::TerminalEnums::NUMLIT_T;
+			break;
+		    case 23: // operator/symbol with backup
+			pos--;
+			lexeme = lexeme.erase(lexeme.length()-1,1);
+		    case 24: // operator/symbol without backup
+			if (lexeme == "number?") token = Grammar::TerminalEnums::NUMBERP_T;
+			else if (lexeme == "symbol?") token = Grammar::TerminalEnums::SYMBOLP_T;
+			else if (lexeme == "list?") token = Grammar::TerminalEnums::LISTP_T;
+			else if (lexeme == "zero?") token = Grammar::TerminalEnums::ZEROP_T;
+			else if (lexeme == "null?") token = Grammar::TerminalEnums::NULLP_T;
+			else if (lexeme == "char?") token = Grammar::TerminalEnums::CHARP_T;
+			else if (lexeme == "string?") token = Grammar::TerminalEnums::STRINGP_T;
+			else if (lexeme == "+") token = Grammar::TerminalEnums::PLUS_T;
+			else if (lexeme == "-") token = Grammar::TerminalEnums::MINUS_T;
+			else if (lexeme == "/") token = Grammar::TerminalEnums::DIV_T;
+			else if (lexeme == "*") token = Grammar::TerminalEnums::MULT_T;
+			else if (lexeme == "=") token = Grammar::TerminalEnums::EQUALTO_T;
+			else if (lexeme == "<") token = Grammar::TerminalEnums::LT_T;
+			else if (lexeme == ">") token = Grammar::TerminalEnums::GT_T;
+			else if (lexeme == "(") token = Grammar::TerminalEnums::LPAREN_T;
+			else if (lexeme == ")") token = Grammar::TerminalEnums::RPAREN_T;
+			else if (lexeme == "'") token = Grammar::TerminalEnums::QUOTE_T;
+			else if (lexeme == "<=") token = Grammar::TerminalEnums::LTE_T;
+			else if (lexeme == ">=") token = Grammar::TerminalEnums::GTE_T;
+			else if (lexeme[lexeme.length()-1] == '?') token = Grammar::TerminalEnums::SYMBOL_T;
+			else token = Grammar::TerminalEnums::ERROR_T;
+			break;
+		    case 31: // error with backup
+			pos--;
+			lexeme = lexeme.erase(lexeme.length()-1,1);
+		    case 32: // error
+			report_error (string("Invalid character found: ") + lexeme);
+			errors++;
+			token = Grammar::TerminalEnums::ERROR_T;
+		}
+	}
+	debug << '\t' << setw(16) << left << token << lexeme << endl;
+	return token;
 }
 
-// Tokenizing Function
-std::vector<LexicalAnalyzer::Token> LexicalAnalyzer::getTokens(std::string& line) {
-    std::vector<Token> result;
-    std::string tokenstr = "";
-    unsigned char col = 0;
-    lineNum++;
-    pos = 0;
-    line += ' ';    // Padding a whitespace for DFA terminals
-    
-    // Walk state table
-    while (pos < line.length()) {
-        state = 0;
-        while (state < TERMINAL_STATE) {
-                curr = line[pos];
-                col = charToCol();
-                state = statetbl[state][col];
-            
-                // Consume whitespace/tab
-                if ((state == 0) && (col == 12)) {
-                    // nop
-                }
-                else {
-                    tokenstr += curr;
-                }
-            
-                pos++;
-        }
-        
-        // Error State
-        if ((state == ERROR_STATE) || (state == UNCLOSED_LIT_ERROR_STATE)) {
-            generateError(result, line, tokenstr);
-        }
-        // Terminal State
-        else {
-            generateToken(result, line, tokenstr);
-        }
-    }
-    
-    // Erase padded whitespace
-    line.erase(line.end()-1);
-    
-    return result;
+string LexicalAnalyzer::get_token_name (Grammar::TerminalEnums t) const
+{
+	return TerminalStrings[static_cast<int>(t)];
 }
 
-// Error state found
-// Generate an error and error token
-inline void LexicalAnalyzer::generateError(std::vector<Token>& result, const std::string& line, std::string& tokenstr) {
-    std::string err = "";
-    // Special error for string literal
-    if (state == UNCLOSED_LIT_ERROR_STATE) {
-        err += "Error unterminated string literal at line ";
-        err += std::to_string(lineNum);
-        errors.push_back(err);
-        pos -= 2;   // An extra for the null character that was read
-    }
-    // Check if NULL Char/EOL
-    else if (curr == 0) {
-        return;
-    }
-    // Standard Errors
-    else {
-        // Build Error String
-        err += "Error at ";
-        err += std::to_string(lineNum);
-        err += ",";
-        err += std::to_string(pos);
-        err += ": Illegal Character: ";
-        err += curr;
-        errors.push_back(err);
-    }
-    
-    // Seek to next (, ), whitespace, tab, or EOL
-    while (pos < line.length()) {
-        curr = line[pos];
-        pos++;
-        tokenstr += curr;
-        // Check if delimiter
-        if ((curr == ' ') || (curr == 9) || (curr == ')') || (curr == '(')) {
-            // Tokenize the error and return
-            // Putback delimiter
-            pos--;
-            tokenstr.erase(tokenstr.end()-1);
-            
-            // Tokenize as a Lexical Error
-            Token tok;
-            tok.lexeme = Grammar::TerminalEnums::LEXICAL_ERROR;
-            tok.value = tokenstr;
-            result.push_back(tok);
-            tokenstr = "";
-            errorCount++;
-            return;
-        }
-    }
+string LexicalAnalyzer::get_lexeme () const
+{
+	return lexeme;
 }
 
-// Generate token from a terminal state
-inline void LexicalAnalyzer::generateToken(std::vector<Token>& result, const std::string& line, std::string& tokenstr) {
-    // Nearly every terminal state is also a putback state
-    if ((state >= PUTBACK_STATE) || (state <= 103)) {
-        pos--;
-        tokenstr.erase(tokenstr.end()-1);
-    }
-
-    // Tokenize
-    Token tok;
-    tok.lexeme = terminalToLexeme();
-
-    if (tok.lexeme == Grammar::TerminalEnums::COMMENT_T) {
-        // Line comment
-        // Ignore Line
-        pos = line.length();
-        return;
-    }
-    else if (tok.lexeme == Grammar::TerminalEnums::STRING_T) {
-        // String Literal
-        // Erase leading " mark
-        // Skip trailing " mark
-        tokenstr.erase(tokenstr.begin());
-        pos++;
-    }
-    tok.value = tokenstr;
-    result.push_back(tok);
-    tokenstr = "";
+void LexicalAnalyzer::report_error (const string & msg)
+{
+	listing << "Error at " << linenum << ',' << pos << ": " << msg << endl;
+	debug << "Error at " << linenum << ',' << pos << ": " << msg << endl;
 }
-
-// Cast from terminal state integer to enum by offset
-inline Grammar::TerminalEnums LexicalAnalyzer::terminalToLexeme() {
-    Grammar::TerminalEnums lex = static_cast<Grammar::TerminalEnums>(state-STATE_OFFSET);
-    return lex;
-}
-
-// Mapping for characters to state table columns
-inline unsigned char LexicalAnalyzer::charToCol() {
-    switch(curr) {
-        case '+':
-            return 0;
-        case '-':
-            return 1;
-        case '/':
-            return 2;
-        case '*':
-            return 3;
-        case '(':
-            return 4;
-        case ')':
-            return 5;
-        case '\'':
-            return 6;
-        case ';':
-            return 7;
-        case '>':
-            return 8;
-        case '<':
-            return 9;
-        case '=':
-            return 10;
-        case '.':
-            return 11;
-        case ' ':
-            return 12;
-        case 9:
-            return 12;  // Tab Char, treat as whitespace
-        case '?':
-            return 13;
-        case 'a':
-            return 14;
-        case 'b':
-            return 15;
-        case 'c':
-            return 16;
-        case 'd':
-            return 17;
-        case 'e':
-            return 18;
-        case 'f':
-            return 19;
-        case 'g':
-            return 20;
-        case 'h':
-            return 21;
-        case 'i':
-            return 22;
-        case 'l':
-            return 23;
-        case 'm':
-            return 24;
-        case 'n':
-            return 25;
-        case 'o':
-            return 26;
-        case 'r':
-            return 27;
-        case 's':
-            return 28;
-        case 't':
-            return 29;
-        case 'u':
-            return 30;
-        case 'v':
-            return 31;
-        case 'y':
-            return 32;
-        case 'z':
-            return 33;
-        case '"':
-            return 37;
-        case 0:
-            return 38;
-        default: {
-            // Alphas
-            if (((curr >= 'a') && (curr <= 'z')) || ((curr >= 'A') && (curr <= 'Z'))) {
-                return 34;
-            }
-            // Numerics
-            else if ((curr >= '0') && (curr <= '9')) {
-                return 35;
-            }
-            // Others
-            else {
-                return 36;
-            }
-        }
-            
-    }
-}
-
-// Return errors vector
-std::vector<std::string> LexicalAnalyzer::getErrors() {
-    return this->errors;
-}
-
-// Return the error count
-size_t LexicalAnalyzer::getErrorCount() {
-    return this->errorCount;
-}
-
-// Reset the errors vector
-void LexicalAnalyzer::resetErrors() {
-    this->errors.clear();
-}
-
-// Reset the errors count
-void LexicalAnalyzer::resetErrorCount() {
-    this->errorCount = 0;
-}
-
-// The Behemoth
-// Yes it was hand-coded
-// Putting this here at the bottom since its so massive
-const unsigned char LexicalAnalyzer::statetbl[87][40] {
-    {1,2,3,4,104,105,106,107,5,7,73,76,0,99,27,74,9,67,23,74,74,74,21,57,74,32,30,74,44,74,74,74,74,62,74,75,99,82,99},
-{99,99,99,99,100,100,99,99,99,99,99,99,100,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99},
-{99,99,99,99,101,101,99,99,99,99,99,99,101,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99},
-{99,99,99,99,102,102,99,99,99,99,99,99,102,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99},
-{99,99,99,99,103,103,99,99,99,99,99,99,103,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99},
-{99,99,99,99,109,109,99,99,99,99,6,99,109,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99},
-{99,99,99,99,108,108,99,99,99,99,99,99,108,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99},
-{99,99,99,99,111,111,99,99,99,99,8,99,111,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99},
-{99,99,99,99,110,110,99,99,99,99,99,99,110,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,10,74,74,12,74,74,74,17,74,74,74,74,14,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,74,74,11,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,112,112,99,99,99,99,99,99,112,99,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,74,74,13,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,113,113,99,99,99,99,99,99,113,99,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,15,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,74,74,74,16,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,114,114,99,99,99,99,99,99,114,99,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,18,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,74,74,19,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,20,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,115,115,99,99,99,99,99,99,115,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,22,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,116,116,99,99,99,99,99,99,116,99,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,24,74,74,74,83,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,74,74,74,25,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,26,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,117,117,99,99,99,99,99,99,117,99,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,28,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,29,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,118,118,99,99,99,99,99,99,118,99,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,74,74,31,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,119,119,99,99,99,99,99,99,119,99,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,74,33,74,74,74,35,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,34,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,120,120,99,99,99,99,99,99,120,99,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,36,39,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,37,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,38,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,121,121,99,99,99,99,99,99,121,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,40,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,41,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,74,74,42,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,43,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,122,122,99,99,99,99,99,99,122,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,51,74,74,45,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,46,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,47,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,74,48,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,49,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,50,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,123,123,99,99,99,99,99,99,123,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,74,74,52,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,53,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,54,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,55,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,56,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,124,124,99,99,99,99,99,99,124,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,77,74,74,74,74,74,74,74,58,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,74,74,74,59,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,60,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,61,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,125,125,99,99,99,99,99,99,125,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,63,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,74,74,64,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,74,65,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,66,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,126,126,99,99,99,99,99,99,126,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,68,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,69,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,70,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,71,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,72,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,127,127,99,99,99,99,99,99,127,99,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,128,128,99,99,99,99,99,99,128,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,130,130,99,99,99,99,99,76,130,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,75,99,99,99},
-{99,99,99,99,130,130,99,99,99,99,99,99,130,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,76,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,78,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,79,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,80,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,81,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,131,131,99,99,99,99,99,99,131,99,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99},
-{82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,132,135},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,74,74,84,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,74,85,74,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,129,129,99,99,99,99,99,99,129,99,74,74,74,74,74,74,74,74,74,74,74,74,74,86,74,74,74,74,74,74,74,74,99,99,99},
-{99,99,99,99,133,133,99,99,99,99,99,99,133,99,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,74,99,99,99}
-};

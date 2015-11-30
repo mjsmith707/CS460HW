@@ -11,6 +11,7 @@
 
 #include "Grammar.h"
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <string>
 #include <algorithm>
@@ -68,10 +69,10 @@ class FirstFollowGenerator {
         // Return the parse table
         std::map<Grammar::parseKey_t, Grammar::Rule>& getParseTable();
     
-        void printRules();
-        void printFirsts();
-        void printFollows();
-        void printPredicts();
+        void printRules(std::fstream&);
+        void printFirsts(std::fstream&);
+        void printFollows(std::fstream&);
+        void printPredicts(std::fstream&);
     
 };
 #endif /* defined(__FirstFollowsGenerator__FirstFollowsGenerator__) */

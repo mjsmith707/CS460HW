@@ -333,50 +333,50 @@ bool FirstFollowGenerator::tryInsert(std::shared_ptr<Grammar::Symbol>& symbol, s
 }
 
 // For debugging
-void FirstFollowGenerator::printRules() {
-    std::cout << "==Production Rules==" << std::endl;
+void FirstFollowGenerator::printRules(std::fstream& stream) {
+    stream << "==Production Rules==" << std::endl;
     for (auto& rule : rules) {
-        std::cout << rule.left->name << " -> ";
+        stream << rule.left->name << " -> ";
         for (auto& right : rule.right) {
-            std::cout << right->name << " ";
+            stream << right->name << " ";
         }
-        std::cout << std::endl;
+        stream << std::endl;
     }
 }
 
-void FirstFollowGenerator::printFirsts() {
-    std::cout << "==Firsts==" << std::endl;
+void FirstFollowGenerator::printFirsts(std::fstream& stream) {
+    stream << "==Firsts==" << std::endl;
     for (auto& nt : nonterminals) {
-        std::cout << nt->name << "\t = { ";
+        stream << nt->name << "\t = { ";
         for (auto& first : nt->first) {
-            std::cout << first->name << ", ";
+            stream << first->name << ", ";
         }
-        std::cout << "}" << std::endl;
+        stream << "}" << std::endl;
     }
 }
 
-void FirstFollowGenerator::printFollows() {
-    std::cout << "==Follows==" << std::endl;
+void FirstFollowGenerator::printFollows(std::fstream& stream) {
+    stream << "==Follows==" << std::endl;
     for (auto& nt : nonterminals) {
-        std::cout << nt->name << "\t = { ";
+        stream << nt->name << "\t = { ";
         for (auto& follow : nt->follow) {
-            std::cout << follow->name << ", ";
+            stream << follow->name << ", ";
         }
-        std::cout << "}" << std::endl;
+        stream << "}" << std::endl;
     }
 }
 
-void FirstFollowGenerator::printPredicts() {
-    std::cout << "==Predicts==" << std::endl;
+void FirstFollowGenerator::printPredicts(std::fstream& stream) {
+    stream << "==Predicts==" << std::endl;
     for (auto& rule : rules) {
-        std::cout << rule.left->name << " -> ";
+        stream << rule.left->name << " -> ";
         for (auto& right : rule.right) {
-            std::cout << right->name << " ";
+            stream << right->name << " ";
         }
-        std::cout << "\t = { ";
+        stream << "\t = { ";
         for (auto& predict : rule.predict) {
-            std::cout << predict->name << ", ";
+            stream << predict->name << ", ";
         }
-        std::cout << "}" << std::endl;
+        stream << "}" << std::endl;
     }
 }

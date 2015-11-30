@@ -16,8 +16,8 @@
 #include "LexicalAnalyzer.h"
 #include "SyntacticAnalyzer.h"
 
-void runInterpreter(std::fstream& inputstream, std::fstream& lststream, std::fstream& dbgstream);
-void initSymbols(std::shared_ptr<FirstFollowGenerator>& ffgen);
+void runInterpreter(std::string& input, std::fstream& inputstream, std::fstream& lststream, std::fstream& dbgstream);
+void initSymbols(std::shared_ptr<FirstFollowGenerator>& ffgen, std::fstream& dbgstream);
 
 int main(int argc, const char* argv[]) {
     // File stream objects
@@ -66,19 +66,20 @@ int main(int argc, const char* argv[]) {
     }
     
     // Run the interpreter
-    runInterpreter(inputstream, lststream, dbgstream);
+    std::string input = argv[1];
+    runInterpreter(input, inputstream, lststream, dbgstream);
     
     return 0;
 }
 
-void runInterpreter(std::fstream& inputstream, std::fstream& lststream, std::fstream& dbgstream) {
+void runInterpreter(std::string& input, std::fstream& inputstream, std::fstream& lststream, std::fstream& dbgstream) {
     // Initialize Language Generator
     std::shared_ptr<FirstFollowGenerator> ffgen(new FirstFollowGenerator());
-    initSymbols(ffgen);
+    initSymbols(ffgen, dbgstream);
     std::shared_ptr<Grammar> grammar(new Grammar(ffgen->getRules(), ffgen->getParseTable()));
     
     // Initialize Tokenizer
-    std::shared_ptr<LexicalAnalyzer> tokenizer(new LexicalAnalyzer(inputstream, lststream, dbgstream));
+    std::shared_ptr<LexicalAnalyzer> tokenizer(new LexicalAnalyzer(input, inputstream, lststream, dbgstream));
     
     // Initialize Syntactic Analyzer
     std::shared_ptr<SyntacticAnalyzer<Grammar, LexicalAnalyzer>> analyzer(new SyntacticAnalyzer<Grammar, LexicalAnalyzer>(grammar, tokenizer, inputstream, lststream, dbgstream));
@@ -87,12 +88,15 @@ void runInterpreter(std::fstream& inputstream, std::fstream& lststream, std::fst
     bool success = analyzer->parseCode();
     
     if (success) {
-        std::cout << "Succeeded!" << std::endl;
+        lststream << "Successfully parsed input file!" << std::endl;
+    }
+    else {
+        lststream << "There were " << analyzer->getErrorCount() << " errors found." << std::endl;
     }
 }
 
 // Initialize Language Symbols
-void initSymbols(std::shared_ptr<FirstFollowGenerator>& ffgen) {
+void initSymbols(std::shared_ptr<FirstFollowGenerator>& ffgen, std::fstream& dbgstream) {
     for (auto& i : TerminalStrings) {
         ffgen->addSymbol(i, true);
     }
@@ -102,13 +106,13 @@ void initSymbols(std::shared_ptr<FirstFollowGenerator>& ffgen) {
     }
     
     ffgen->addRules(RulesStrings);
-    ffgen->printRules();
+    ffgen->printRules(dbgstream);
     ffgen->generateSets();
-    std::cout << std::endl;
-    ffgen->printFirsts();
-    std::cout << std::endl;
-    ffgen->printFollows();
-    std::cout << std::endl;
-    ffgen->printPredicts();
-    std::cout << std::endl;
+    dbgstream << std::endl;
+    ffgen->printFirsts(dbgstream);
+    dbgstream << std::endl;
+    ffgen->printFollows(dbgstream);
+    dbgstream << std::endl;
+    ffgen->printPredicts(dbgstream);
+    dbgstream << std::endl;
 }

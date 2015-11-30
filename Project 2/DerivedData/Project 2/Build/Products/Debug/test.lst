@@ -1,12 +1,8 @@
-2. (car '(abc def ghi))
-0 errors found.
-3. (cons 'abd '(1 2 3))
-0 errors found.
-4. (cons 'a 'b)
-0 errors found.
-5. (cons (car '(a b c d)) (cdr '(a b c d)))
-0 errors found.
-6. (cons (car '(a b c d)) (car '(a b c d)))
-0 errors found.
-7. (define (a '(1 2 3)))
-0 errors found.
+Input file: test.ss
+   1: (car '(abc def ghi))
+   2: (cons 'abd '(1 2 3))
+   3: (cons 'a 'b)
+   4: (cons (car '(a b c d)) (cdr '(a b c d)))
+   5: (cons (car '(a b c d)) (car '(a b c d)))
+Successfully parsed input file!
+0 errors found in input file

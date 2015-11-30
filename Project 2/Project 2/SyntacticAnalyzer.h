@@ -44,19 +44,19 @@ template <typename G, typename T> class SyntacticAnalyzer {
         stk.push(start);
         
         // Get first symbol
-        auto token = tokenizer->getToken();
+        auto token = tokenizer->get_token();
         
         while (!stk.empty()) {
             // Get top of stack
             auto& top = stk.top();
-            std::cout << "Top: " << top->name << std::endl;
-            std::cout << "Token: " << token.lexeme << std::endl;
+            dbgStream << "Top: " << top->name << std::endl;
+            dbgStream << "Token: " << token << std::endl;
             // If not terminal
             if (!top->terminal) {
-                auto itr = parseTable.find(Grammar::parseKey_t(top, token.lexeme));
+                auto itr = parseTable.find(Grammar::parseKey_t(top, token));
                 // If table rule is found
                 if (itr != parseTable.end()) {
-                    std::cout << "Accepted Nonterminal: " << itr->second.left->name << " <-> " << token.lexeme << std::endl;
+                    dbgStream << "Accepted Nonterminal: " << itr->second.left->name << " <-> " << token << std::endl;
                     // Pop stack
                     stk.pop();
                     // Push righthand side of production to stack
@@ -69,41 +69,50 @@ template <typename G, typename T> class SyntacticAnalyzer {
                     }
                 }
                 else {
-                    std::cout << "Parse Error: " << top->name << " <-> " << token.lexeme << std::endl;
-                    reportError(top->name, token.value, top->follow[0]->name);
-                    std::cout << "== Stack Trace == " << std::endl;
+                    dbgStream << "Parse Error: " << top->name << " <-> " << token << std::endl;
+                    reportError(top->name, token, top->follow[0]->name);
+                    dbgStream << "== Stack Trace == " << std::endl;
                     while (!stk.empty()) {
                         auto& temp = stk.top();
                         stk.pop();
-                        std::cout << temp->name << std::endl;
+                        dbgStream << temp->name << std::endl;
                     }
-                    std::cout << "== End Stack == " << std::endl;
+                    dbgStream << "== End Stack == " << std::endl;
+                    // Repush start symbol
+                    stk.push(start);
+                    // Get next token
+                    token = tokenizer->get_token();
                 }
             }
-            else if (token.lexeme == top->tokenName) {
+            else if (token == top->tokenName) {
                 // Match terminal symbol in input
-                std::cout << "Accepted Terminal: " << top->tokenName << std::endl;
+                dbgStream << "Accepted Terminal: " << top->tokenName << std::endl;
                 stk.pop();
                 
                 // Get next token
-                token = tokenizer->getToken();
+                token = tokenizer->get_token();
             }
             else {
-                std::cout << "Parse Error2: " << top->name << " <-> " << token.lexeme << std::endl;
-                reportError(top->name, token.value, top->first[0]->name);
-                std::cout << "== Stack Trace == " << std::endl;
+                dbgStream << "Parse Error2: " << top->name << " <-> " << token << std::endl;
+                reportError(top->name, token, top->first[0]->name);
+                dbgStream << "== Stack Trace == " << std::endl;
                 while (!stk.empty()) {
                     auto& temp = stk.top();
                     stk.pop();
-                    std::cout << temp->name << std::endl;
+                    dbgStream << temp->name << std::endl;
                 }
-                std::cout << "== End Stack == " << std::endl;
+                dbgStream << "== End Stack == " << std::endl;
+                // Repush start symbol
+                stk.push(start);
+                // Get next token
+                token = tokenizer->get_token();
             }
         }
     }
     
-    void reportError(std::string productionLeft, std::string found, std::string expected) {
-        std::cout << "In production: " << productionLeft << ". Found: '" << found << "' but expected '" << expected << "'" << std::endl;
+    void reportError(std::string productionLeft, Grammar::TerminalEnums found, std::string expected) {
+        lstStream << "In production: " << productionLeft << ". Found: '" << found << "' but expected '" << expected << "'" << std::endl;
+        dbgStream << "In production: " << productionLeft << ". Found: '" << found << "' but expected '" << expected << "'" << std::endl;
         errorCount++;
     }
     
@@ -122,7 +131,10 @@ template <typename G, typename T> class SyntacticAnalyzer {
             parse(start);
             return errorCount == 0;
         }
-  
+
+        size_t getErrorCount() {
+            return errorCount;
+        }
 };
 
 #endif

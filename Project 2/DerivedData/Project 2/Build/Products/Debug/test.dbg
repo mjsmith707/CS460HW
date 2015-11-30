@@ -1,97 +1,778 @@
-2. (car '(abc def ghi))
-LPAREN_T  (
-CAR_T     car
-QUOTE_T   '
-LPAREN_T  (
-SYMBOL_T  abc
-SYMBOL_T  def
-SYMBOL_T  ghi
-RPAREN_T  )
-RPAREN_T  )
-0 errors found.
-3. (cons 'abd '(1 2 3))
-LPAREN_T  (
-CONS_T    cons
-QUOTE_T   '
-SYMBOL_T  abd
-QUOTE_T   '
-LPAREN_T  (
-NUMLIT_T  1
-NUMLIT_T  2
-NUMLIT_T  3
-RPAREN_T  )
-RPAREN_T  )
-0 errors found.
-4. (cons 'a 'b)
-LPAREN_T  (
-CONS_T    cons
-QUOTE_T   '
-SYMBOL_T  a
-QUOTE_T   '
-SYMBOL_T  b
-RPAREN_T  )
-0 errors found.
-5. (cons (car '(a b c d)) (cdr '(a b c d)))
-LPAREN_T  (
-CONS_T    cons
-LPAREN_T  (
-CAR_T     car
-QUOTE_T   '
-LPAREN_T  (
-SYMBOL_T  a
-SYMBOL_T  b
-SYMBOL_T  c
-SYMBOL_T  d
-RPAREN_T  )
-RPAREN_T  )
-LPAREN_T  (
-CDR_T     cdr
-QUOTE_T   '
-LPAREN_T  (
-SYMBOL_T  a
-SYMBOL_T  b
-SYMBOL_T  c
-SYMBOL_T  d
-RPAREN_T  )
-RPAREN_T  )
-RPAREN_T  )
-0 errors found.
-6. (cons (car '(a b c d)) (car '(a b c d)))
-LPAREN_T  (
-CONS_T    cons
-LPAREN_T  (
-CAR_T     car
-QUOTE_T   '
-LPAREN_T  (
-SYMBOL_T  a
-SYMBOL_T  b
-SYMBOL_T  c
-SYMBOL_T  d
-RPAREN_T  )
-RPAREN_T  )
-LPAREN_T  (
-CAR_T     car
-QUOTE_T   '
-LPAREN_T  (
-SYMBOL_T  a
-SYMBOL_T  b
-SYMBOL_T  c
-SYMBOL_T  d
-RPAREN_T  )
-RPAREN_T  )
-RPAREN_T  )
-0 errors found.
-7. (define (a '(1 2 3)))
-LPAREN_T  (
-DEFINE_T  define
-LPAREN_T  (
-SYMBOL_T  a
-QUOTE_T   '
-LPAREN_T  (
-NUMLIT_T  1
-NUMLIT_T  2
-NUMLIT_T  3
-RPAREN_T  )
-RPAREN_T  )
-RPAREN_T  )
-0 errors found.
+==Production Rules==
+<program> -> <stmt> <stmt_list> EOF_T 
+<stmt_list> -> <stmt> <stmt_list> 
+<stmt_list> -> LAMBDA 
+<stmt> -> <literal> 
+<stmt> -> LPAREN_T <action> RPAREN_T 
+<literal> -> NUMLIT_T 
+<literal> -> SYMBOL_T 
+<literal> -> QUOTE_T <quoted_lit> 
+<quoted_lit> -> SYMBOL_T 
+<quoted_lit> -> NUMLIT_T 
+<quoted_lit> -> LPAREN_T <stmt_list> RPAREN_T 
+<action> -> DEFINE_T SYMBOL_T <param_list> <stmt> 
+<param_list> -> SYMBOL_T <param_list> 
+<param_list> -> LAMBDA 
+<action> -> IF_T <stmt> <stmt> <else_part> 
+<else_part> -> <stmt> 
+<else_part> -> LAMBDA 
+<action> -> CAR_T <stmt> 
+<action> -> CDR_T <stmt> 
+<action> -> CONS_T <stmt> <stmt> 
+<action> -> AND_T <stmt_list> 
+<action> -> OR_T <stmt_list> 
+<action> -> NOT_T <stmt> 
+<action> -> LISTOP_T <stmt> 
+<action> -> NUMBERP_T <stmt> 
+<action> -> SYMBOLP_T <stmt> 
+<action> -> LISTP_T <stmt> 
+<action> -> ZEROP_T <stmt> 
+<action> -> NULLP_T <stmt> 
+<action> -> CHARP_T <stmt> 
+<action> -> STRINGP_T <stmt> 
+<action> -> PLUS_T <stmt_list> 
+<action> -> MINUS_T <stmt> <stmt_list> 
+<action> -> DIV_T <stmt> <stmt_list> 
+<action> -> MULT_T <stmt_list> 
+<action> -> EQUALTO_T <stmt_list> 
+<action> -> GT_T <stmt_list> 
+<action> -> LT_T <stmt_list> 
+<action> -> GTE_T <stmt_list> 
+<action> -> LTE_T <stmt_list> 
+<action> -> SYMBOL_T <stmt_list> 
+
+==Firsts==
+<program>	 = { LPAREN_T, NUMLIT_T, SYMBOL_T, QUOTE_T, }
+<stmt>	 = { LPAREN_T, NUMLIT_T, SYMBOL_T, QUOTE_T, }
+<stmt_list>	 = { LAMBDA, LPAREN_T, NUMLIT_T, SYMBOL_T, QUOTE_T, RPAREN_T, EOF_T, }
+<literal>	 = { NUMLIT_T, SYMBOL_T, QUOTE_T, }
+<quoted_lit>	 = { SYMBOL_T, NUMLIT_T, LPAREN_T, }
+<action>	 = { DEFINE_T, IF_T, CAR_T, CDR_T, CONS_T, AND_T, OR_T, NOT_T, LISTOP_T, NUMBERP_T, SYMBOLP_T, LISTP_T, ZEROP_T, NULLP_T, CHARP_T, STRINGP_T, PLUS_T, MINUS_T, DIV_T, MULT_T, EQUALTO_T, GT_T, LT_T, GTE_T, LTE_T, SYMBOL_T, }
+<param_list>	 = { SYMBOL_T, LAMBDA, LPAREN_T, NUMLIT_T, QUOTE_T, }
+<else_part>	 = { LAMBDA, LPAREN_T, NUMLIT_T, SYMBOL_T, QUOTE_T, RPAREN_T, }
+
+==Follows==
+<program>	 = { EOF_T, }
+<stmt>	 = { LPAREN_T, NUMLIT_T, SYMBOL_T, QUOTE_T, RPAREN_T, EOF_T, }
+<stmt_list>	 = { RPAREN_T, EOF_T, }
+<literal>	 = { LPAREN_T, NUMLIT_T, SYMBOL_T, QUOTE_T, RPAREN_T, EOF_T, }
+<quoted_lit>	 = { LPAREN_T, NUMLIT_T, SYMBOL_T, QUOTE_T, RPAREN_T, EOF_T, }
+<action>	 = { RPAREN_T, }
+<param_list>	 = { LPAREN_T, NUMLIT_T, SYMBOL_T, QUOTE_T, }
+<else_part>	 = { RPAREN_T, }
+
+==Predicts==
+<program> -> <stmt> <stmt_list> EOF_T 	 = { LPAREN_T, NUMLIT_T, SYMBOL_T, QUOTE_T, }
+<stmt_list> -> <stmt> <stmt_list> 	 = { LPAREN_T, NUMLIT_T, SYMBOL_T, QUOTE_T, }
+<stmt_list> -> LAMBDA 	 = { RPAREN_T, EOF_T, }
+<stmt> -> <literal> 	 = { NUMLIT_T, SYMBOL_T, QUOTE_T, }
+<stmt> -> LPAREN_T <action> RPAREN_T 	 = { LPAREN_T, }
+<literal> -> NUMLIT_T 	 = { NUMLIT_T, }
+<literal> -> SYMBOL_T 	 = { SYMBOL_T, }
+<literal> -> QUOTE_T <quoted_lit> 	 = { QUOTE_T, }
+<quoted_lit> -> SYMBOL_T 	 = { SYMBOL_T, }
+<quoted_lit> -> NUMLIT_T 	 = { NUMLIT_T, }
+<quoted_lit> -> LPAREN_T <stmt_list> RPAREN_T 	 = { LPAREN_T, }
+<action> -> DEFINE_T SYMBOL_T <param_list> <stmt> 	 = { DEFINE_T, }
+<param_list> -> SYMBOL_T <param_list> 	 = { SYMBOL_T, }
+<param_list> -> LAMBDA 	 = { LPAREN_T, NUMLIT_T, SYMBOL_T, QUOTE_T, }
+<action> -> IF_T <stmt> <stmt> <else_part> 	 = { IF_T, }
+<else_part> -> <stmt> 	 = { LPAREN_T, NUMLIT_T, SYMBOL_T, QUOTE_T, }
+<else_part> -> LAMBDA 	 = { RPAREN_T, }
+<action> -> CAR_T <stmt> 	 = { CAR_T, }
+<action> -> CDR_T <stmt> 	 = { CDR_T, }
+<action> -> CONS_T <stmt> <stmt> 	 = { CONS_T, }
+<action> -> AND_T <stmt_list> 	 = { AND_T, }
+<action> -> OR_T <stmt_list> 	 = { OR_T, }
+<action> -> NOT_T <stmt> 	 = { NOT_T, }
+<action> -> LISTOP_T <stmt> 	 = { LISTOP_T, }
+<action> -> NUMBERP_T <stmt> 	 = { NUMBERP_T, }
+<action> -> SYMBOLP_T <stmt> 	 = { SYMBOLP_T, }
+<action> -> LISTP_T <stmt> 	 = { LISTP_T, }
+<action> -> ZEROP_T <stmt> 	 = { ZEROP_T, }
+<action> -> NULLP_T <stmt> 	 = { NULLP_T, }
+<action> -> CHARP_T <stmt> 	 = { CHARP_T, }
+<action> -> STRINGP_T <stmt> 	 = { STRINGP_T, }
+<action> -> PLUS_T <stmt_list> 	 = { PLUS_T, }
+<action> -> MINUS_T <stmt> <stmt_list> 	 = { MINUS_T, }
+<action> -> DIV_T <stmt> <stmt_list> 	 = { DIV_T, }
+<action> -> MULT_T <stmt_list> 	 = { MULT_T, }
+<action> -> EQUALTO_T <stmt_list> 	 = { EQUALTO_T, }
+<action> -> GT_T <stmt_list> 	 = { GT_T, }
+<action> -> LT_T <stmt_list> 	 = { LT_T, }
+<action> -> GTE_T <stmt_list> 	 = { GTE_T, }
+<action> -> LTE_T <stmt_list> 	 = { LTE_T, }
+<action> -> SYMBOL_T <stmt_list> 	 = { SYMBOL_T, }
+
+Input file: test.ss
+   1: (car '(abc def ghi))
+	LPAREN_T        (
+Top: <program>
+Token: LPAREN_T
+Accepted Nonterminal: <program> <-> LPAREN_T
+Top: <stmt>
+Token: LPAREN_T
+Accepted Nonterminal: <stmt> <-> LPAREN_T
+Top: LPAREN_T
+Token: LPAREN_T
+Accepted Terminal: LPAREN_T
+	CAR_T           car
+Top: <action>
+Token: CAR_T
+Accepted Nonterminal: <action> <-> CAR_T
+Top: CAR_T
+Token: CAR_T
+Accepted Terminal: CAR_T
+	QUOTE_T         '
+Top: <stmt>
+Token: QUOTE_T
+Accepted Nonterminal: <stmt> <-> QUOTE_T
+Top: <literal>
+Token: QUOTE_T
+Accepted Nonterminal: <literal> <-> QUOTE_T
+Top: QUOTE_T
+Token: QUOTE_T
+Accepted Terminal: QUOTE_T
+	LPAREN_T        (
+Top: <quoted_lit>
+Token: LPAREN_T
+Accepted Nonterminal: <quoted_lit> <-> LPAREN_T
+Top: LPAREN_T
+Token: LPAREN_T
+Accepted Terminal: LPAREN_T
+	SYMBOL_T        abc
+Top: <stmt_list>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt_list> <-> SYMBOL_T
+Top: <stmt>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt> <-> SYMBOL_T
+Top: <literal>
+Token: SYMBOL_T
+Accepted Nonterminal: <literal> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	SYMBOL_T        def
+Top: <stmt_list>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt_list> <-> SYMBOL_T
+Top: <stmt>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt> <-> SYMBOL_T
+Top: <literal>
+Token: SYMBOL_T
+Accepted Nonterminal: <literal> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	SYMBOL_T        ghi
+Top: <stmt_list>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt_list> <-> SYMBOL_T
+Top: <stmt>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt> <-> SYMBOL_T
+Top: <literal>
+Token: SYMBOL_T
+Accepted Nonterminal: <literal> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	RPAREN_T        )
+Top: <stmt_list>
+Token: RPAREN_T
+Accepted Nonterminal: <stmt_list> <-> RPAREN_T
+Top: RPAREN_T
+Token: RPAREN_T
+Accepted Terminal: RPAREN_T
+	RPAREN_T        )
+Top: RPAREN_T
+Token: RPAREN_T
+Accepted Terminal: RPAREN_T
+   2: (cons 'abd '(1 2 3))
+	LPAREN_T        (
+Top: <stmt_list>
+Token: LPAREN_T
+Accepted Nonterminal: <stmt_list> <-> LPAREN_T
+Top: <stmt>
+Token: LPAREN_T
+Accepted Nonterminal: <stmt> <-> LPAREN_T
+Top: LPAREN_T
+Token: LPAREN_T
+Accepted Terminal: LPAREN_T
+	CONS_T          cons
+Top: <action>
+Token: CONS_T
+Accepted Nonterminal: <action> <-> CONS_T
+Top: CONS_T
+Token: CONS_T
+Accepted Terminal: CONS_T
+	QUOTE_T         '
+Top: <stmt>
+Token: QUOTE_T
+Accepted Nonterminal: <stmt> <-> QUOTE_T
+Top: <literal>
+Token: QUOTE_T
+Accepted Nonterminal: <literal> <-> QUOTE_T
+Top: QUOTE_T
+Token: QUOTE_T
+Accepted Terminal: QUOTE_T
+	SYMBOL_T        abd
+Top: <quoted_lit>
+Token: SYMBOL_T
+Accepted Nonterminal: <quoted_lit> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	QUOTE_T         '
+Top: <stmt>
+Token: QUOTE_T
+Accepted Nonterminal: <stmt> <-> QUOTE_T
+Top: <literal>
+Token: QUOTE_T
+Accepted Nonterminal: <literal> <-> QUOTE_T
+Top: QUOTE_T
+Token: QUOTE_T
+Accepted Terminal: QUOTE_T
+	LPAREN_T        (
+Top: <quoted_lit>
+Token: LPAREN_T
+Accepted Nonterminal: <quoted_lit> <-> LPAREN_T
+Top: LPAREN_T
+Token: LPAREN_T
+Accepted Terminal: LPAREN_T
+	NUMLIT_T        1
+Top: <stmt_list>
+Token: NUMLIT_T
+Accepted Nonterminal: <stmt_list> <-> NUMLIT_T
+Top: <stmt>
+Token: NUMLIT_T
+Accepted Nonterminal: <stmt> <-> NUMLIT_T
+Top: <literal>
+Token: NUMLIT_T
+Accepted Nonterminal: <literal> <-> NUMLIT_T
+Top: NUMLIT_T
+Token: NUMLIT_T
+Accepted Terminal: NUMLIT_T
+	NUMLIT_T        2
+Top: <stmt_list>
+Token: NUMLIT_T
+Accepted Nonterminal: <stmt_list> <-> NUMLIT_T
+Top: <stmt>
+Token: NUMLIT_T
+Accepted Nonterminal: <stmt> <-> NUMLIT_T
+Top: <literal>
+Token: NUMLIT_T
+Accepted Nonterminal: <literal> <-> NUMLIT_T
+Top: NUMLIT_T
+Token: NUMLIT_T
+Accepted Terminal: NUMLIT_T
+	NUMLIT_T        3
+Top: <stmt_list>
+Token: NUMLIT_T
+Accepted Nonterminal: <stmt_list> <-> NUMLIT_T
+Top: <stmt>
+Token: NUMLIT_T
+Accepted Nonterminal: <stmt> <-> NUMLIT_T
+Top: <literal>
+Token: NUMLIT_T
+Accepted Nonterminal: <literal> <-> NUMLIT_T
+Top: NUMLIT_T
+Token: NUMLIT_T
+Accepted Terminal: NUMLIT_T
+	RPAREN_T        )
+Top: <stmt_list>
+Token: RPAREN_T
+Accepted Nonterminal: <stmt_list> <-> RPAREN_T
+Top: RPAREN_T
+Token: RPAREN_T
+Accepted Terminal: RPAREN_T
+	RPAREN_T        )
+Top: RPAREN_T
+Token: RPAREN_T
+Accepted Terminal: RPAREN_T
+   3: (cons 'a 'b)
+	LPAREN_T        (
+Top: <stmt_list>
+Token: LPAREN_T
+Accepted Nonterminal: <stmt_list> <-> LPAREN_T
+Top: <stmt>
+Token: LPAREN_T
+Accepted Nonterminal: <stmt> <-> LPAREN_T
+Top: LPAREN_T
+Token: LPAREN_T
+Accepted Terminal: LPAREN_T
+	CONS_T          cons
+Top: <action>
+Token: CONS_T
+Accepted Nonterminal: <action> <-> CONS_T
+Top: CONS_T
+Token: CONS_T
+Accepted Terminal: CONS_T
+	QUOTE_T         '
+Top: <stmt>
+Token: QUOTE_T
+Accepted Nonterminal: <stmt> <-> QUOTE_T
+Top: <literal>
+Token: QUOTE_T
+Accepted Nonterminal: <literal> <-> QUOTE_T
+Top: QUOTE_T
+Token: QUOTE_T
+Accepted Terminal: QUOTE_T
+	SYMBOL_T        a
+Top: <quoted_lit>
+Token: SYMBOL_T
+Accepted Nonterminal: <quoted_lit> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	QUOTE_T         '
+Top: <stmt>
+Token: QUOTE_T
+Accepted Nonterminal: <stmt> <-> QUOTE_T
+Top: <literal>
+Token: QUOTE_T
+Accepted Nonterminal: <literal> <-> QUOTE_T
+Top: QUOTE_T
+Token: QUOTE_T
+Accepted Terminal: QUOTE_T
+	SYMBOL_T        b
+Top: <quoted_lit>
+Token: SYMBOL_T
+Accepted Nonterminal: <quoted_lit> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	RPAREN_T        )
+Top: RPAREN_T
+Token: RPAREN_T
+Accepted Terminal: RPAREN_T
+   4: (cons (car '(a b c d)) (cdr '(a b c d)))
+	LPAREN_T        (
+Top: <stmt_list>
+Token: LPAREN_T
+Accepted Nonterminal: <stmt_list> <-> LPAREN_T
+Top: <stmt>
+Token: LPAREN_T
+Accepted Nonterminal: <stmt> <-> LPAREN_T
+Top: LPAREN_T
+Token: LPAREN_T
+Accepted Terminal: LPAREN_T
+	CONS_T          cons
+Top: <action>
+Token: CONS_T
+Accepted Nonterminal: <action> <-> CONS_T
+Top: CONS_T
+Token: CONS_T
+Accepted Terminal: CONS_T
+	LPAREN_T        (
+Top: <stmt>
+Token: LPAREN_T
+Accepted Nonterminal: <stmt> <-> LPAREN_T
+Top: LPAREN_T
+Token: LPAREN_T
+Accepted Terminal: LPAREN_T
+	CAR_T           car
+Top: <action>
+Token: CAR_T
+Accepted Nonterminal: <action> <-> CAR_T
+Top: CAR_T
+Token: CAR_T
+Accepted Terminal: CAR_T
+	QUOTE_T         '
+Top: <stmt>
+Token: QUOTE_T
+Accepted Nonterminal: <stmt> <-> QUOTE_T
+Top: <literal>
+Token: QUOTE_T
+Accepted Nonterminal: <literal> <-> QUOTE_T
+Top: QUOTE_T
+Token: QUOTE_T
+Accepted Terminal: QUOTE_T
+	LPAREN_T        (
+Top: <quoted_lit>
+Token: LPAREN_T
+Accepted Nonterminal: <quoted_lit> <-> LPAREN_T
+Top: LPAREN_T
+Token: LPAREN_T
+Accepted Terminal: LPAREN_T
+	SYMBOL_T        a
+Top: <stmt_list>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt_list> <-> SYMBOL_T
+Top: <stmt>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt> <-> SYMBOL_T
+Top: <literal>
+Token: SYMBOL_T
+Accepted Nonterminal: <literal> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	SYMBOL_T        b
+Top: <stmt_list>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt_list> <-> SYMBOL_T
+Top: <stmt>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt> <-> SYMBOL_T
+Top: <literal>
+Token: SYMBOL_T
+Accepted Nonterminal: <literal> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	SYMBOL_T        c
+Top: <stmt_list>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt_list> <-> SYMBOL_T
+Top: <stmt>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt> <-> SYMBOL_T
+Top: <literal>
+Token: SYMBOL_T
+Accepted Nonterminal: <literal> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	SYMBOL_T        d
+Top: <stmt_list>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt_list> <-> SYMBOL_T
+Top: <stmt>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt> <-> SYMBOL_T
+Top: <literal>
+Token: SYMBOL_T
+Accepted Nonterminal: <literal> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	RPAREN_T        )
+Top: <stmt_list>
+Token: RPAREN_T
+Accepted Nonterminal: <stmt_list> <-> RPAREN_T
+Top: RPAREN_T
+Token: RPAREN_T
+Accepted Terminal: RPAREN_T
+	RPAREN_T        )
+Top: RPAREN_T
+Token: RPAREN_T
+Accepted Terminal: RPAREN_T
+	LPAREN_T        (
+Top: <stmt>
+Token: LPAREN_T
+Accepted Nonterminal: <stmt> <-> LPAREN_T
+Top: LPAREN_T
+Token: LPAREN_T
+Accepted Terminal: LPAREN_T
+	CDR_T           cdr
+Top: <action>
+Token: CDR_T
+Accepted Nonterminal: <action> <-> CDR_T
+Top: CDR_T
+Token: CDR_T
+Accepted Terminal: CDR_T
+	QUOTE_T         '
+Top: <stmt>
+Token: QUOTE_T
+Accepted Nonterminal: <stmt> <-> QUOTE_T
+Top: <literal>
+Token: QUOTE_T
+Accepted Nonterminal: <literal> <-> QUOTE_T
+Top: QUOTE_T
+Token: QUOTE_T
+Accepted Terminal: QUOTE_T
+	LPAREN_T        (
+Top: <quoted_lit>
+Token: LPAREN_T
+Accepted Nonterminal: <quoted_lit> <-> LPAREN_T
+Top: LPAREN_T
+Token: LPAREN_T
+Accepted Terminal: LPAREN_T
+	SYMBOL_T        a
+Top: <stmt_list>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt_list> <-> SYMBOL_T
+Top: <stmt>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt> <-> SYMBOL_T
+Top: <literal>
+Token: SYMBOL_T
+Accepted Nonterminal: <literal> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	SYMBOL_T        b
+Top: <stmt_list>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt_list> <-> SYMBOL_T
+Top: <stmt>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt> <-> SYMBOL_T
+Top: <literal>
+Token: SYMBOL_T
+Accepted Nonterminal: <literal> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	SYMBOL_T        c
+Top: <stmt_list>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt_list> <-> SYMBOL_T
+Top: <stmt>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt> <-> SYMBOL_T
+Top: <literal>
+Token: SYMBOL_T
+Accepted Nonterminal: <literal> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	SYMBOL_T        d
+Top: <stmt_list>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt_list> <-> SYMBOL_T
+Top: <stmt>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt> <-> SYMBOL_T
+Top: <literal>
+Token: SYMBOL_T
+Accepted Nonterminal: <literal> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	RPAREN_T        )
+Top: <stmt_list>
+Token: RPAREN_T
+Accepted Nonterminal: <stmt_list> <-> RPAREN_T
+Top: RPAREN_T
+Token: RPAREN_T
+Accepted Terminal: RPAREN_T
+	RPAREN_T        )
+Top: RPAREN_T
+Token: RPAREN_T
+Accepted Terminal: RPAREN_T
+	RPAREN_T        )
+Top: RPAREN_T
+Token: RPAREN_T
+Accepted Terminal: RPAREN_T
+   5: (cons (car '(a b c d)) (car '(a b c d)))
+	LPAREN_T        (
+Top: <stmt_list>
+Token: LPAREN_T
+Accepted Nonterminal: <stmt_list> <-> LPAREN_T
+Top: <stmt>
+Token: LPAREN_T
+Accepted Nonterminal: <stmt> <-> LPAREN_T
+Top: LPAREN_T
+Token: LPAREN_T
+Accepted Terminal: LPAREN_T
+	CONS_T          cons
+Top: <action>
+Token: CONS_T
+Accepted Nonterminal: <action> <-> CONS_T
+Top: CONS_T
+Token: CONS_T
+Accepted Terminal: CONS_T
+	LPAREN_T        (
+Top: <stmt>
+Token: LPAREN_T
+Accepted Nonterminal: <stmt> <-> LPAREN_T
+Top: LPAREN_T
+Token: LPAREN_T
+Accepted Terminal: LPAREN_T
+	CAR_T           car
+Top: <action>
+Token: CAR_T
+Accepted Nonterminal: <action> <-> CAR_T
+Top: CAR_T
+Token: CAR_T
+Accepted Terminal: CAR_T
+	QUOTE_T         '
+Top: <stmt>
+Token: QUOTE_T
+Accepted Nonterminal: <stmt> <-> QUOTE_T
+Top: <literal>
+Token: QUOTE_T
+Accepted Nonterminal: <literal> <-> QUOTE_T
+Top: QUOTE_T
+Token: QUOTE_T
+Accepted Terminal: QUOTE_T
+	LPAREN_T        (
+Top: <quoted_lit>
+Token: LPAREN_T
+Accepted Nonterminal: <quoted_lit> <-> LPAREN_T
+Top: LPAREN_T
+Token: LPAREN_T
+Accepted Terminal: LPAREN_T
+	SYMBOL_T        a
+Top: <stmt_list>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt_list> <-> SYMBOL_T
+Top: <stmt>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt> <-> SYMBOL_T
+Top: <literal>
+Token: SYMBOL_T
+Accepted Nonterminal: <literal> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	SYMBOL_T        b
+Top: <stmt_list>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt_list> <-> SYMBOL_T
+Top: <stmt>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt> <-> SYMBOL_T
+Top: <literal>
+Token: SYMBOL_T
+Accepted Nonterminal: <literal> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	SYMBOL_T        c
+Top: <stmt_list>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt_list> <-> SYMBOL_T
+Top: <stmt>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt> <-> SYMBOL_T
+Top: <literal>
+Token: SYMBOL_T
+Accepted Nonterminal: <literal> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	SYMBOL_T        d
+Top: <stmt_list>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt_list> <-> SYMBOL_T
+Top: <stmt>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt> <-> SYMBOL_T
+Top: <literal>
+Token: SYMBOL_T
+Accepted Nonterminal: <literal> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	RPAREN_T        )
+Top: <stmt_list>
+Token: RPAREN_T
+Accepted Nonterminal: <stmt_list> <-> RPAREN_T
+Top: RPAREN_T
+Token: RPAREN_T
+Accepted Terminal: RPAREN_T
+	RPAREN_T        )
+Top: RPAREN_T
+Token: RPAREN_T
+Accepted Terminal: RPAREN_T
+	LPAREN_T        (
+Top: <stmt>
+Token: LPAREN_T
+Accepted Nonterminal: <stmt> <-> LPAREN_T
+Top: LPAREN_T
+Token: LPAREN_T
+Accepted Terminal: LPAREN_T
+	CAR_T           car
+Top: <action>
+Token: CAR_T
+Accepted Nonterminal: <action> <-> CAR_T
+Top: CAR_T
+Token: CAR_T
+Accepted Terminal: CAR_T
+	QUOTE_T         '
+Top: <stmt>
+Token: QUOTE_T
+Accepted Nonterminal: <stmt> <-> QUOTE_T
+Top: <literal>
+Token: QUOTE_T
+Accepted Nonterminal: <literal> <-> QUOTE_T
+Top: QUOTE_T
+Token: QUOTE_T
+Accepted Terminal: QUOTE_T
+	LPAREN_T        (
+Top: <quoted_lit>
+Token: LPAREN_T
+Accepted Nonterminal: <quoted_lit> <-> LPAREN_T
+Top: LPAREN_T
+Token: LPAREN_T
+Accepted Terminal: LPAREN_T
+	SYMBOL_T        a
+Top: <stmt_list>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt_list> <-> SYMBOL_T
+Top: <stmt>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt> <-> SYMBOL_T
+Top: <literal>
+Token: SYMBOL_T
+Accepted Nonterminal: <literal> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	SYMBOL_T        b
+Top: <stmt_list>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt_list> <-> SYMBOL_T
+Top: <stmt>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt> <-> SYMBOL_T
+Top: <literal>
+Token: SYMBOL_T
+Accepted Nonterminal: <literal> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	SYMBOL_T        c
+Top: <stmt_list>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt_list> <-> SYMBOL_T
+Top: <stmt>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt> <-> SYMBOL_T
+Top: <literal>
+Token: SYMBOL_T
+Accepted Nonterminal: <literal> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	SYMBOL_T        d
+Top: <stmt_list>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt_list> <-> SYMBOL_T
+Top: <stmt>
+Token: SYMBOL_T
+Accepted Nonterminal: <stmt> <-> SYMBOL_T
+Top: <literal>
+Token: SYMBOL_T
+Accepted Nonterminal: <literal> <-> SYMBOL_T
+Top: SYMBOL_T
+Token: SYMBOL_T
+Accepted Terminal: SYMBOL_T
+	RPAREN_T        )
+Top: <stmt_list>
+Token: RPAREN_T
+Accepted Nonterminal: <stmt_list> <-> RPAREN_T
+Top: RPAREN_T
+Token: RPAREN_T
+Accepted Terminal: RPAREN_T
+	RPAREN_T        )
+Top: RPAREN_T
+Token: RPAREN_T
+Accepted Terminal: RPAREN_T
+	RPAREN_T        )
+Top: RPAREN_T
+Token: RPAREN_T
+Accepted Terminal: RPAREN_T
+Top: <stmt_list>
+Token: EOF_T
+Accepted Nonterminal: <stmt_list> <-> EOF_T
+Top: EOF_T
+Token: EOF_T
+Accepted Terminal: EOF_T
+	ERROR_T          
+0 errors found in input file
